@@ -3,4 +3,4 @@ Response Rate Limiting Plugin for CoreDNS
 
 Work in Progress
 
-See README-DEV.md for design spec.
+[Design Spec](./README-DEV.md)
