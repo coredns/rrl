@@ -7,8 +7,7 @@ In the interest of keeping PRs as small as possible, RRL will first
 implement the following minimal set of sub-functions.
 
 * Parsing of Corefile
-* Categorization of responses, and accounts debits
-* Periodic account credits
+* Categorization of responses, and accounts debits/credit
 * Always block response when account is negative (no slip, i.e. slip = 0)
 
 The following functions, if added, would bring RRL into feature parity
@@ -107,9 +106,9 @@ response type.
 
 ### ResponseAccount Credits
 
-Once per second, RRL will credit each existing *ResponseAccount balance* by an amount equal to `per-second` allowance of the the corresponding response type.
+_Conceptually_, RRL will credit once per second each existing *ResponseAccount balance* by an amount equal to `per-second` allowance of the the corresponding response type.
 If a *ResponseAccount balance* exceeds window, then the *ResponseAccount* should be removed to keep the *ResponseAccount* table from running out of space (should prune less often than every second to reduce thrashing).
-
+As implemented, it's probably more performant to calculate credits on demand (at debit time) instead of in a separate asynchronous thread.  In the same vein, it's probably more performant to defer evictions until space is needed (at insert time, when space runs out).
 
 ### ResponseAccount Debits
 
