@@ -106,8 +106,7 @@ response type.
 
 ### ResponseAccount Credits
 
-_Conceptually_, RRL will credit once per second each existing *ResponseAccount balance* by an amount equal to `per-second` allowance of the the corresponding response type.
-If a *ResponseAccount balance* exceeds window, then the *ResponseAccount* should be removed to keep the *ResponseAccount* table from running out of space (should prune less often than every second to reduce thrashing).
+_Conceptually_, RRL will credit once per second each existing *ResponseAccount balance* by an amount equal to `per-second` allowance of the the corresponding response type. If a *ResponseAccount balance* exceeds window, then the *ResponseAccount* can be evicted to keep the *ResponseAccount* table from running out of space.
 
 _As implemented_, it's probably more performant to calculate credits on demand (at debit time) instead of in a separate asynchronous thread.  In the same vein, it's probably more performant to defer evictions until space is needed (at insert time, when space runs out).
 
