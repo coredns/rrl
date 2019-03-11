@@ -160,6 +160,6 @@ TBD
 
 TBD (client list / cidrs to exempt from RRL)
 
-### Qps-scale
+### QPS-scale
 
 TBD (scale down allowances proportionally to current qps load)
