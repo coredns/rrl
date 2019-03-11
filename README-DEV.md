@@ -108,20 +108,21 @@ response type.
 
 _Conceptually_, RRL will credit once per second each existing *ResponseAccount balance* by an amount equal to `per-second` allowance of the the corresponding response type.
 If a *ResponseAccount balance* exceeds window, then the *ResponseAccount* should be removed to keep the *ResponseAccount* table from running out of space (should prune less often than every second to reduce thrashing).
-As implemented, it's probably more performant to calculate credits on demand (at debit time) instead of in a separate asynchronous thread.  In the same vein, it's probably more performant to defer evictions until space is needed (at insert time, when space runs out).
+
+_As implemented_, it's probably more performant to calculate credits on demand (at debit time) instead of in a separate asynchronous thread.  In the same vein, it's probably more performant to defer evictions until space is needed (at insert time, when space runs out).
 
 ### ResponseAccount Debits
 
 *ResponseAccount balances* are debited at the time of sending a UDP response to a client, using the following logic ...
 
-Calculate the *ResponseAccount token* for the response
-If the *token* doesn’t exist in the to the *ResponseAccount* table, add the token as follows…
-If the `max-table-size` is reached/exceeded, log an error/warning, and send response to client (done)
-Add the *token* to the *ResponseAccount* table
-Credit the *balance* to maximum - 1.  I.e. `window`  - 1
-If the *token* does exist, debit the balance by 1
-If *balance* is >= 0, send response to client. (done)
-If *balance* is < 0, then drop the response, sending nothing to the client (done)
+1. Calculate the *ResponseAccount token* for the response
+1. If the *token* doesn’t exist in the to the *ResponseAccount* table, add the token as follows…
+   1. If the `max-table-size` is reached/exceeded, log an error/warning, and send response to client (done)
+   1. Add the *token* to the *ResponseAccount* table
+   1. Credit the *balance* to maximum - 1.  I.e. `window`  - 1
+1. If the *token* does exist, debit the balance by 1
+1. If *balance* is >= 0, send response to client. (done)
+1. If *balance* is < 0, then drop the response, sending nothing to the client (done)
 
 ### ResponseAccount Concurrency
 
