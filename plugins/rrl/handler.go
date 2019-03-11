@@ -16,12 +16,12 @@ func (rrl *RRL) Name() string { return "rrl" }
 func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (rcode int, err error) {
 	state := request.Request{W: w, Req: r}
 
-	// immediately pass to next plugin if request is over tcp
+	// immediately pass to next plugin if the request is over tcp
 	if state.Proto() == "tcp" {
 		return plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, w, r)
 	}
 
-	// immediately pass to next plugin if request not in the rrl zones
+	// immediately pass to next plugin if the request not in the rrl zones
 	zone := plugin.Zones(rrl.Zones).Matches(state.Name())
 	if zone == "" {
 		return plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, w, r)
@@ -42,7 +42,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	}
 	b, err := rrl.debit(allowance, t)
 
-	// if the balance negative, drop the response (don't write response to client)
+	// if the balance is negative, drop the response (don't write response to client)
 	if b < 0 && err == nil {
 		log.Debugf("dropped response to %v for \"%v\" %v (token='%v', balance=%v)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, b)
 		// always return success, to prevent writing of error statuses to client
