@@ -4,7 +4,7 @@ This spec defines a CoreDNS plugin intended to replicate the behavior of
 the rate-limit feature in BIND.
 
 In the interest of keeping PRs as small as possible, RRL will first
-implement the following minimal set of sub-functions.
+implement the following minimal set of sub-functions (aka minimal viable product).
 
 * Parsing of Corefile
 * Categorization of responses, and accounts debits/credit
