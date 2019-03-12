@@ -75,7 +75,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if len(args) != 1 {
 						return nil, c.ArgErr()
 					}
-					w, err := strconv.Atoi(args[0])
+					w, err := strconv.ParseFloat(args[0], 64)
 					if err != nil {
 						return nil, c.Errf("%v invalid value. %v", c.Val(), err)
 					}
@@ -114,7 +114,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if len(args) != 1 {
 						return nil, c.ArgErr()
 					}
-					rps, err := strconv.Atoi(args[0])
+					rps, err := strconv.ParseFloat(args[0], 64)
 					if err != nil {
 						return nil, c.Errf("%v invalid value. %v", c.Val(), err)
 					}
@@ -127,7 +127,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if len(args) != 1 {
 						return nil, c.ArgErr()
 					}
-					rps, err := strconv.Atoi(args[0])
+					rps, err := strconv.ParseFloat(args[0], 64)
 					if err != nil {
 						return nil, c.Errf("%v invalid value. %v", c.Val(), err)
 					}
@@ -141,7 +141,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if len(args) != 1 {
 						return nil, c.ArgErr()
 					}
-					rps, err := strconv.Atoi(args[0])
+					rps, err := strconv.ParseFloat(args[0], 64)
 					if err != nil {
 						return nil, c.Errf("%v invalid value. %v", c.Val(), err)
 					}
@@ -155,7 +155,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if len(args) != 1 {
 						return nil, c.ArgErr()
 					}
-					rps, err := strconv.Atoi(args[0])
+					rps, err := strconv.ParseFloat(args[0], 64)
 					if err != nil {
 						return nil, c.Errf("%v invalid value. %v", c.Val(), err)
 					}
@@ -169,7 +169,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if len(args) != 1 {
 						return nil, c.ArgErr()
 					}
-					rps, err := strconv.Atoi(args[0])
+					rps, err := strconv.ParseFloat(args[0], 64)
 					if err != nil {
 						return nil, c.Errf("%v invalid value. %v", c.Val(), err)
 					}
