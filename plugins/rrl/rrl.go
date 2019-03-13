@@ -18,16 +18,16 @@ type RRL struct {
 	Next  plugin.Handler
 	Zones []string
 
-	window int
+	window float64
 
 	ipv4PrefixLength int
 	ipv6PrefixLength int
 
-	responsesPerSecond int
-	nodataPerSecond    int
-	nxdomainsPerSecond int
-	referralsPerSecond int
-	errorsPerSecond    int
+	responsesPerSecond float64
+	nodataPerSecond    float64
+	nxdomainsPerSecond float64
+	referralsPerSecond float64
+	errorsPerSecond    float64
 
 	maxTableSize int
 
@@ -36,9 +36,9 @@ type RRL struct {
 
 // ResponseAccount holds accounting for a category of response
 type ResponseAccount struct {
-	allowance int
+	allowance float64
 	lastCheck time.Time
-	balance   int
+	balance   float64
 }
 
 // Theses constants are categories of response types
@@ -65,7 +65,7 @@ func responseType(m dns.Msg) byte {
 }
 
 // allowanceForRtype returns the per second allowance for the given rtype
-func (rrl *RRL) allowanceForRtype(rtype uint8) int {
+func (rrl *RRL) allowanceForRtype(rtype uint8) float64 {
 	switch rtype {
 	case rTypeResponse:
 		return rrl.responsesPerSecond
@@ -90,7 +90,7 @@ func (rrl *RRL) initTable() {
 		if !ok {
 			return true
 		}
-		return ra.allowance*int(time.Now().Sub(ra.lastCheck).Seconds()) >= rrl.window
+		return float64(ra.allowance)*time.Now().Sub(ra.lastCheck).Seconds() >= float64(rrl.window)
 	})
 }
 
@@ -112,7 +112,7 @@ func (rrl *RRL) responseToToken(rtype uint8, qtype uint16, name, remoteAddr stri
 
 // debit will decrement an existing response account in the rrl table by one and recalculate the current balance,
 // or if the response account does not exist, it will add it.
-func (rrl *RRL) debit(allowance int, t string) (int, error) {
+func (rrl *RRL) debit(allowance float64, t string) (float64, error) {
 	result := rrl.table.UpdateAdd(t,
 		// the 'update' function debits the account and returns the new balance
 		func(el *interface{}) interface{} {
@@ -121,7 +121,7 @@ func (rrl *RRL) debit(allowance int, t string) (int, error) {
 				return nil
 			}
 			now := time.Now()
-			ra.balance += allowance*int(now.Sub(ra.lastCheck).Seconds()) - 1
+			ra.balance += allowance * now.Sub(ra.lastCheck).Seconds() - 1
 			if ra.balance >= rrl.window {
 				// balance can't exceed window
 				ra.balance = rrl.window - 1
@@ -148,7 +148,7 @@ func (rrl *RRL) debit(allowance int, t string) (int, error) {
 	if err, ok := result.(error); ok {
 		return 0, err
 	}
-	if balance, ok := result.(int); ok {
+	if balance, ok := result.(float64); ok {
 		return balance, nil
 	}
 	return 0, errors.New("unexpected result type")

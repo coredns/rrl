@@ -44,7 +44,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 
 	// if the balance is negative, drop the response (don't write response to client)
 	if b < 0 && err == nil {
-		log.Debugf("dropped response to %v for \"%v\" %v (token='%v', balance=%v)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, b)
+		log.Debugf("dropped response to %v for \"%v\" %v (token='%v', balance=%f.1)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, b)
 		// always return success, to prevent writing of error statuses to client
 		return dns.RcodeSuccess, nil
 	}
