@@ -22,7 +22,6 @@ To better protect against attacks using invalid requests, requested name and typ
 
 Each category has an account balance which is credited at a rate of the configured *per-second* allowance for that response type, and debited each time a response in that category would be sent to a client.  When an account balance is negative, responses in the category are dropped until the balance goes non-negative.  Account balances cannot be more positive than *window*, and cannot be more negative than *window* * *per-second* allowance.
 
-
 This implementation intends to replicate the behavior of BIND 9's response rate limiting feature.
 
 ## Syntax
@@ -41,23 +40,23 @@ rrl [ZONES...] {
 }
 ```
 
-* `window SECONDS` - defines a rolling window in SECONDS during which response rates are tracked. Default 15.
+* `window SECONDS` - the rolling window in **SECONDS** during which response rates are tracked. Default 15.
 
-* `ipv4-prefix-length LENGTH` - the prefix LENGTH in bits to use for identifying a ipv4 client. Default 24.
+* `ipv4-prefix-length LENGTH` - the prefix **LENGTH** in bits to use for identifying a ipv4 client. Default 24.
 
-* `ipv6-prefix-length LENGTH` - the prefix LENGTH in bits to use for identifying a ipv6 client. Default 56.
+* `ipv6-prefix-length LENGTH` - the prefix **LENGTH** in bits to use for identifying a ipv6 client. Default 56.
 
-* `responses-per-second ALLOWANCE` - the number of positive responses allowed per second. Default 0.
+* `responses-per-second ALLOWANCE` - the number of positive responses allowed per second. An **ALLOWANCE** of 0 disables rate limiting of positive responses. Default 0.
 
-* `nodata-per-second ALLOWANCE` - the number of empty (NODATA) responses allowed per second. Defaults to responses-per-second.
+* `nodata-per-second ALLOWANCE` - the number of `NODATA` responses allowed per second. An **ALLOWANCE** of 0 disables rate limiting of NODATA responses. Defaults to responses-per-second.
 
-* `nxdomains-per-second ALLOWANCE` - the number of negative (NXDOMAIN) responses allowed per second. Defaults to responses-per-second.
+* `nxdomains-per-second ALLOWANCE` - the number of `NXDOMAIN` responses allowed per second. An **ALLOWANCE** of 0 disables rate limiting of NXDOMAIN responses. Defaults to responses-per-second.
 
-* `referrals-per-second ALLOWANCE` - the number of referral responses allowed per second. Defaults to responses-per-second.
+* `referrals-per-second ALLOWANCE` - the number of referral responses allowed per second. An **ALLOWANCE** of 0 disables rate limiting of referral responses. Defaults to responses-per-second.
 
-* `errors-per-second ALLOWANCE` - the number of error responses allowed per second (excluding NXDOMAIN). Defaults to responses-per-second.
+* `errors-per-second ALLOWANCE` - the number of error responses allowed per second (excluding NXDOMAIN). An **ALLOWANCE** of 0 disables rate limiting of error responses. Defaults to responses-per-second.
 
-* `max-table-size SIZE` - the maximum number of responses to be tracked at one time. When exceeded, rrl stops rate limiting new responses.
+* `max-table-size SIZE` - the maximum number of responses to be tracked at one time. When exceeded, rrl stops rate limiting new responses. Defaults to 100000.
 
 
 ## Examples
