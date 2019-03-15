@@ -73,7 +73,17 @@ Example 1
 
 ~~~
 
-## Bugs
+## Bugs / Known Issues / Limitations
+
+BIND9's implementation of Response Rate Limiting will rate limit all wildcard generated records in one account per the base domain of the wild card.  e.g. Both `a.dom.com.` and  `b.dom.com.` would be accounted for as `dom.com.`, if they are generated from the wildcard record `*.dom.com.`
+
+Per the BIND 9.11 ARM...
+
+> Responses generated from local wildcards are counted and limited as if they were for the parent domain name. 
+> This controls flooding using random.wild.example.com.
+
+CoreDNS can serve plugins that can be authoritative for wildcard sub domains, but getting rrl to be aware of these is complex.
+Therfore in CoreDNS *rrl*, wildcard generated records are accounted for individually.
 
 ## Additional References
 
