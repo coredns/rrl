@@ -122,11 +122,32 @@ func TestResponseToToken(t *testing.T) {
 			expected:   "1.2.3.0/0/1/example.com",
 		},
 		{
+			rtype:      rTypeNodata,
+			qtype:      dns.TypeA,
+			name:       "example.com",
+			remoteAddr: "1.2.3.4:1234",
+			expected:   "1.2.3.0/1//example.com",
+		},
+		{
 			rtype:      rTypeError,
 			qtype:      dns.TypeA,
 			name:       "example.com",
 			remoteAddr: "1.2.3.4:1234",
-			expected:   "1.2.3.0/4/1/",
+			expected:   "1.2.3.0/4//",
+		},
+		{
+			rtype:      rTypeNxdomain,
+			qtype:      dns.TypeA,
+			name:       "example.com",
+			remoteAddr: "1.2.3.4:1234",
+			expected:   "1.2.3.0/2//example.com",
+		},
+		{
+			rtype:      rTypeReferral,
+			qtype:      dns.TypeA,
+			name:       "example.com",
+			remoteAddr: "1.2.3.4:1234",
+			expected:   "1.2.3.0/3/1/example.com",
 		},
 	}
 	rrl := defaultRRL()
