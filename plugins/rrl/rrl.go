@@ -99,34 +99,26 @@ func (rrl *RRL) responseToToken(rtype uint8, qtype uint16, name, remoteAddr stri
 	// "Per BIND" references below are copied from from the BIND 9.11 Manual
 	// https://ftp.isc.org/isc/bind9/cur/9.11/doc/arm/Bv9ARM.pdf
 	prefix := rrl.addrPrefix(remoteAddr)
+	rtypestr := strconv.FormatUint(uint64(rtype), 10)
 	switch rtype {
 	case rTypeResponse:
 		// Per BIND: All non-empty responses for a valid domain name (qname) and record type (qtype) are identical
 		qtypeStr := strconv.FormatUint(uint64(qtype), 10)
-		rtypestr := strconv.FormatUint(uint64(rtype), 10)
 		return strings.Join([]string{prefix, rtypestr, qtypeStr, name}, "/")
 	case rTypeNodata:
 		// Per BIND: All empty (NODATA) responses for a valid domain, regardless of query type, are identical.
-		rtypestr := strconv.FormatUint(uint64(rtype), 10)
-		prefix := rrl.addrPrefix(remoteAddr)
 		return strings.Join([]string{prefix, rtypestr, "", name}, "/")
 	case rTypeNxdomain:
 		// Per BIND: Requests for any and all undefined subdomains of a given valid domain result in NXDOMAIN errors
 		// and are identical regardless of query type.
-		rtypestr := strconv.FormatUint(uint64(rtype), 10)
-		prefix := rrl.addrPrefix(remoteAddr)
 		return strings.Join([]string{prefix, rtypestr, "", name}, "/")
 	case rTypeReferral:
 		// Per BIND: Referrals or delegations to the server of a given domain are identical.
 		qtypeStr := strconv.FormatUint(uint64(qtype), 10)
-		rtypestr := strconv.FormatUint(uint64(rtype), 10)
-		prefix := rrl.addrPrefix(remoteAddr)
 		return strings.Join([]string{prefix, rtypestr, qtypeStr, name}, "/")
 	case rTypeError:
 		// Per BIND: All requests that result in DNS errors other than NXDOMAIN, such as SERVFAIL and FORMERR, are
 		// identical regardless of requested name (qname) or record type (qtype).
-		rtypestr := strconv.FormatUint(uint64(rtype), 10)
-		prefix := rrl.addrPrefix(remoteAddr)
 		return strings.Join([]string{prefix, rtypestr, "", ""}, "/")
 	}
 	return ""
