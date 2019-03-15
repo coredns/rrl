@@ -32,8 +32,8 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	rcode, err = plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, nw, r)
 
 	// get token for response and debit the balance
-	rtype := responseType(*nw.Msg)
-	t := rrl.responseToToken(rtype, nw.Msg.Question[0].Qtype, nw.Msg.Question[0].Name, nw.RemoteAddr().String())
+	rtype := responseType(nw.Msg)
+	t := rrl.responseToToken(nw, rtype)
 	allowance := rrl.allowanceForRtype(rtype)
 	// a zero allowance indicates that no RRL should be performed for the response type, so write the response to client
 	if allowance == 0 {
@@ -57,4 +57,3 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	err = w.WriteMsg(nw.Msg)
 	return rcode, err
 }
-

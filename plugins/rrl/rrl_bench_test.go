@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func BenchmarkResponseToToken(b *testing.B) {
+func BenchmarkBuildToken(b *testing.B) {
 	rrl := RRL{
 		ipv4PrefixLength: 24,
 		ipv6PrefixLength: 56,
@@ -17,7 +17,7 @@ func BenchmarkResponseToToken(b *testing.B) {
 	b.ReportAllocs()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		rrl.responseToToken(rTypeResponse, dns.TypeA, "example.org.", "101.102.103.104:4321")
+		rrl.buildToken(rTypeResponse, dns.TypeA, "example.org.", "101.102.103.104:4321")
 	}
 }
 

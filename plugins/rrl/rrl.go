@@ -9,6 +9,7 @@ import (
 
 	"github.com/coredns/rrl/plugins/rrl/cache"
 
+	"github.com/coredns/coredns/plugin/pkg/nonwriter"
 	"github.com/coredns/coredns/plugin"
 	"github.com/miekg/dns"
 )
@@ -51,7 +52,7 @@ const (
 )
 
 // responseType returns the RRL response type for a response
-func responseType(m dns.Msg) byte {
+func responseType(m *dns.Msg) byte {
 	if len(m.Answer) > 0 {
 		return rTypeResponse
 	} else if m.Rcode == dns.RcodeNameError {
@@ -94,20 +95,49 @@ func (rrl *RRL) initTable() {
 	})
 }
 
-// responseToToken returns a token string for the given inputs
-func (rrl *RRL) responseToToken(rtype uint8, qtype uint16, name, remoteAddr string) string {
-	var qname string
-
-	if rtype != rTypeError {
-		qname = name
+// responseToToken returns a token string for the response in writer
+func (rrl *RRL) responseToToken(nw *nonwriter.Writer, rtype byte) string {
+	var name string
+	if rtype == rTypeNxdomain || rtype == rTypeReferral {
+		// for these types we index on the authoritative domain, not the full qname
+		// if there is no auth section, dont index on name at all (treat all identical)
+		if len(nw.Msg.Ns) > 0 {
+			name = nw.Msg.Ns[0].Header().Name
+		}
+	} else {
+		name = nw.Msg.Question[0].Name
 	}
+	return rrl.buildToken(rtype, nw.Msg.Question[0].Qtype, name, nw.RemoteAddr().String())
+}
 
-	qtypeStr := strconv.FormatUint(uint64(qtype), 10)
-	rtypestr := strconv.FormatUint(uint64(rtype), 10)
-
+// buildToken returns a token string for the given inputs
+func (rrl *RRL) buildToken(rtype uint8, qtype uint16, name, remoteAddr string) string {
+	// "Per BIND" references below are copied from the BIND 9.11 Manual
+	// https://ftp.isc.org/isc/bind9/cur/9.11/doc/arm/Bv9ARM.pdf
 	prefix := rrl.addrPrefix(remoteAddr)
-
-	return strings.Join([]string{prefix, rtypestr, qtypeStr, qname}, "/")
+	rtypestr := strconv.FormatUint(uint64(rtype), 10)
+	switch rtype {
+	case rTypeResponse:
+		// Per BIND: All non-empty responses for a valid domain name (qname) and record type (qtype) are identical
+		qtypeStr := strconv.FormatUint(uint64(qtype), 10)
+		return strings.Join([]string{prefix, rtypestr, qtypeStr, name}, "/")
+	case rTypeNodata:
+		// Per BIND: All empty (NODATA) responses for a valid domain, regardless of query type, are identical.
+		return strings.Join([]string{prefix, rtypestr, "", name}, "/")
+	case rTypeNxdomain:
+		// Per BIND: Requests for any and all undefined subdomains of a given valid domain result in NXDOMAIN errors
+		// and are identical regardless of query type.
+		return strings.Join([]string{prefix, rtypestr, "", name}, "/")
+	case rTypeReferral:
+		// Per BIND: Referrals or delegations to the server of a given domain are identical.
+		qtypeStr := strconv.FormatUint(uint64(qtype), 10)
+		return strings.Join([]string{prefix, rtypestr, qtypeStr, name}, "/")
+	case rTypeError:
+		// Per BIND: All requests that result in DNS errors other than NXDOMAIN, such as SERVFAIL and FORMERR, are
+		// identical regardless of requested name (qname) or record type (qtype).
+		return strings.Join([]string{prefix, rtypestr, "", ""}, "/")
+	}
+	return ""
 }
 
 // debit will decrement an existing response account in the rrl table by one and recalculate the current balance,
@@ -121,7 +151,7 @@ func (rrl *RRL) debit(allowance float64, t string) (float64, error) {
 				return nil
 			}
 			now := time.Now()
-			ra.balance += allowance * now.Sub(ra.lastCheck).Seconds() - 1
+			ra.balance += allowance*now.Sub(ra.lastCheck).Seconds() - 1
 			if ra.balance >= rrl.window {
 				// balance can't exceed window
 				ra.balance = rrl.window - 1

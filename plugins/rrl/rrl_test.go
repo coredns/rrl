@@ -81,7 +81,7 @@ func TestResponseType(t *testing.T) {
 		},
 	}
 	for _, c := range tests {
-		got := responseType(c.msg)
+		got := responseType(&c.msg)
 		if got != c.expected {
 			t.Errorf("expected '%v', got '%v'", c.expected, got)
 		}
@@ -106,7 +106,7 @@ func TestAllowanceForRtype(t *testing.T) {
 	}
 }
 
-func TestResponseToToken(t *testing.T) {
+func TestBuildToken(t *testing.T) {
 	tests := []struct {
 		rtype      uint8
 		qtype      uint16
@@ -122,16 +122,37 @@ func TestResponseToToken(t *testing.T) {
 			expected:   "1.2.3.0/0/1/example.com",
 		},
 		{
+			rtype:      rTypeNodata,
+			qtype:      dns.TypeA,
+			name:       "example.com",
+			remoteAddr: "1.2.3.4:1234",
+			expected:   "1.2.3.0/1//example.com",
+		},
+		{
 			rtype:      rTypeError,
 			qtype:      dns.TypeA,
 			name:       "example.com",
 			remoteAddr: "1.2.3.4:1234",
-			expected:   "1.2.3.0/4/1/",
+			expected:   "1.2.3.0/4//",
+		},
+		{
+			rtype:      rTypeNxdomain,
+			qtype:      dns.TypeA,
+			name:       "example.com",
+			remoteAddr: "1.2.3.4:1234",
+			expected:   "1.2.3.0/2//example.com",
+		},
+		{
+			rtype:      rTypeReferral,
+			qtype:      dns.TypeA,
+			name:       "example.com",
+			remoteAddr: "1.2.3.4:1234",
+			expected:   "1.2.3.0/3/1/example.com",
 		},
 	}
 	rrl := defaultRRL()
 	for _, c := range tests {
-		got := rrl.responseToToken(c.rtype, c.qtype, c.name, c.remoteAddr)
+		got := rrl.buildToken(c.rtype, c.qtype, c.name, c.remoteAddr)
 		if got != c.expected {
 			t.Errorf("expected '%v', got '%v'", c.expected, got)
 		}
