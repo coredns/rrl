@@ -81,7 +81,7 @@ func TestResponseType(t *testing.T) {
 		},
 	}
 	for _, c := range tests {
-		got := responseType(c.msg)
+		got := responseType(&c.msg)
 		if got != c.expected {
 			t.Errorf("expected '%v', got '%v'", c.expected, got)
 		}
@@ -106,7 +106,7 @@ func TestAllowanceForRtype(t *testing.T) {
 	}
 }
 
-func TestResponseToToken(t *testing.T) {
+func TestBuildToken(t *testing.T) {
 	tests := []struct {
 		rtype      uint8
 		qtype      uint16
@@ -152,7 +152,7 @@ func TestResponseToToken(t *testing.T) {
 	}
 	rrl := defaultRRL()
 	for _, c := range tests {
-		got := rrl.responseToToken(c.rtype, c.qtype, c.name, c.remoteAddr)
+		got := rrl.buildToken(c.rtype, c.qtype, c.name, c.remoteAddr)
 		if got != c.expected {
 			t.Errorf("expected '%v', got '%v'", c.expected, got)
 		}
