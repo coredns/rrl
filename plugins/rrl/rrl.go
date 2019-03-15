@@ -112,7 +112,7 @@ func (rrl *RRL) responseToToken(nw *nonwriter.Writer, rtype byte) string {
 
 // buildToken returns a token string for the given inputs
 func (rrl *RRL) buildToken(rtype uint8, qtype uint16, name, remoteAddr string) string {
-	// "Per BIND" references below are copied from from the BIND 9.11 Manual
+	// "Per BIND" references below are copied from the BIND 9.11 Manual
 	// https://ftp.isc.org/isc/bind9/cur/9.11/doc/arm/Bv9ARM.pdf
 	prefix := rrl.addrPrefix(remoteAddr)
 	rtypestr := strconv.FormatUint(uint64(rtype), 10)
