@@ -9,8 +9,8 @@ import (
 
 	"github.com/coredns/rrl/plugins/rrl/cache"
 
-	"github.com/coredns/coredns/plugin/pkg/nonwriter"
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/pkg/nonwriter"
 	"github.com/miekg/dns"
 )
 
@@ -58,7 +58,9 @@ func responseType(m *dns.Msg) byte {
 	} else if m.Rcode == dns.RcodeNameError {
 		return rTypeNxdomain
 	} else if m.Rcode == dns.RcodeSuccess {
-		// todo: determine if this is actually a referral, assume nodata for now
+		if len(m.Ns) > 0 && m.Ns[0].Header().Rrtype == dns.TypeNS {
+			return rTypeReferral
+		}
 		return rTypeNodata
 	} else {
 		return rTypeError

@@ -67,6 +67,15 @@ func TestResponseType(t *testing.T) {
 		},
 		{
 			msg: dns.Msg{
+				MsgHdr: dns.MsgHdr{Rcode: dns.RcodeSuccess},
+				Ns: []dns.RR{
+					test.NS("example.com. 12345 IN NS ns1.example.com."),
+				},
+			},
+			expected: rTypeReferral,
+		},
+		{
+			msg: dns.Msg{
 				MsgHdr: dns.MsgHdr{Rcode: dns.RcodeNameError},
 				Answer: []dns.RR{},
 			},
