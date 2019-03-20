@@ -15,7 +15,7 @@ func Hash(what []byte) uint64 {
 
 // Cache is cache with a customizable eviction policy.
 type Cache struct {
-	shards [shardSize]*shard
+	shards [numShards]*shard
 }
 
 type EvictFn func(*interface{}) bool
@@ -35,7 +35,7 @@ type shard struct {
 
 // New returns a new cache.
 func New(size int) *Cache {
-	ssize := size / shardSize
+	ssize := size / numShards
 	if ssize < 4 {
 		ssize = 4
 	}
@@ -43,7 +43,7 @@ func New(size int) *Cache {
 	c := &Cache{}
 
 	// Initialize all the shards
-	for i := 0; i < shardSize; i++ {
+	for i := 0; i < numShards; i++ {
 		c.shards[i] = newShard(ssize)
 	}
 	return c
@@ -56,7 +56,7 @@ func (c *Cache) SetEvict(e EvictFn) {
 }
 
 func keyShard(key string) uint64 {
-	return Hash([]byte(key)) & (shardSize - 1)
+	return Hash([]byte(key)) & (numShards - 1)
 }
 
 // Add adds a new element to the cache. If the element already exists it is overwritten.
@@ -182,4 +182,4 @@ func (s *shard) len() int {
 	return l
 }
 
-const shardSize = 1 //4096 //todo: tune this
+const numShards = 256
