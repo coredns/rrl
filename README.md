@@ -20,7 +20,7 @@ The *rrl* plugin tracks response rates per category of response. The category of
 
 To better protect against attacks using invalid requests, requested name and type are not categorized separately for error type requests. In other words, all error responses are limited collectively per client, regardless of qname or qtype.
 
-Each category has an account balance which is credited at a rate of the configured *per-second* allowance for that response type, and debited each time a response in that category would be sent to a client.  When an account balance is negative, responses in the category are dropped until the balance goes non-negative.  Account balances cannot be more positive than *window* * *per-second* allowance, and cannot be more negative than *window* * *per-second* allowance.
+Each category has an account balance which is credited at a rate of the configured *per-second* allowance for that response type, and debited each time a response in that category would be sent to a client.  When an account balance is negative, responses in the category are dropped until the balance goes non-negative.  Account balances cannot be more positive than  *per-second* allowance, and cannot be more negative than *window* * *per-second* allowance.
 
 This implementation intends to replicate the behavior of BIND 9's response rate limiting feature.
 
