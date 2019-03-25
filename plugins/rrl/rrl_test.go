@@ -14,7 +14,7 @@ func TestDebit(t *testing.T) {
 
 	rrl := defaultRRL()
 	rrl.window = 5
-	rrl.responsesPerSecond = 0
+	rrl.responsesPerSecond = 10
 	rrl.nxdomainsPerSecond = 100
 	rrl.table = cache.New(rrl.maxTableSize)
 
@@ -24,13 +24,13 @@ func TestDebit(t *testing.T) {
 	}
 	ra, _ := rrl.table.Get("token1")
 	bal := ra.(*ResponseAccount).balance
-	if bal != rrl.window-1 {
-		t.Errorf("expected balance of %v, got %v", rrl.window-1, bal)
+	if bal != rrl.responsesPerSecond-1 {
+		t.Errorf("expected balance of %v, got %v", rrl.responsesPerSecond-1, bal)
 	}
 
 	bal, err = rrl.debit(rrl.allowanceForRtype(rTypeResponse), "token1")
-	if bal != rrl.window-2 {
-		t.Errorf("expected balance of %v, got %v", rrl.window-2, bal)
+	if bal > rrl.responsesPerSecond-1 {
+		t.Errorf("expected balance of < %v, got %v", rrl.responsesPerSecond-1, bal)
 	}
 
 	_, err = rrl.debit(rrl.allowanceForRtype(rTypeNxdomain), "token2")
@@ -39,8 +39,8 @@ func TestDebit(t *testing.T) {
 	}
 	time.Sleep(time.Second) // sleep 1 second, balance should max out
 	bal, err = rrl.debit(rrl.allowanceForRtype(rTypeNxdomain), "token2")
-	if bal != rrl.window-1 {
-		t.Errorf("expected balance of %v, got %v", rrl.window-1, bal)
+	if bal != rrl.nxdomainsPerSecond-1 {
+		t.Errorf("expected balance of %v, got %v", rrl.nxdomainsPerSecond-1, bal)
 	}
 
 }
