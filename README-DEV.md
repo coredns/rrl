@@ -97,7 +97,7 @@ To better protect against attacks using invalid requests, requested name and typ
 The *ResponseAccount balance* is an integer. When the *balance* becomes negative
 for a *ResponseAccount*, any responses that match its *token* are dropped until
 the *balance* becomes positive again.
-The *ResponseAccount balance* cannot become more positive than `window` and
+The *ResponseAccount balance* cannot become more positive than the `per-second` allowance and
 cannot become more negative than `window` * the `per-second` allowance of the
 response type.
 
