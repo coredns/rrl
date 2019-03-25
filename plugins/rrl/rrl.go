@@ -19,16 +19,16 @@ type RRL struct {
 	Next  plugin.Handler
 	Zones []string
 
-	window float64
+	window int64
 
 	ipv4PrefixLength int
 	ipv6PrefixLength int
 
-	responsesPerSecond float64
-	nodataPerSecond    float64
-	nxdomainsPerSecond float64
-	referralsPerSecond float64
-	errorsPerSecond    float64
+	responsesInterval int64
+	nodataInterval    int64
+	nxdomainsInterval int64
+	referralsInterval int64
+	errorsInterval    int64
 
 	maxTableSize int
 
@@ -36,10 +36,9 @@ type RRL struct {
 }
 
 // ResponseAccount holds accounting for a category of response
+// Next response is allowed if current time >= allowTime
 type ResponseAccount struct {
-	allowance float64
-	lastCheck time.Time
-	balance   float64
+	allowTime int64
 }
 
 // Theses constants are categories of response types
@@ -67,19 +66,19 @@ func responseType(m *dns.Msg) byte {
 	}
 }
 
-// allowanceForRtype returns the per second allowance for the given rtype
-func (rrl *RRL) allowanceForRtype(rtype uint8) float64 {
+// allowanceForRtype returns allowed response interval for the given rtype
+func (rrl *RRL) allowanceForRtype(rtype uint8) int64 {
 	switch rtype {
 	case rTypeResponse:
-		return rrl.responsesPerSecond
+		return rrl.responsesInterval
 	case rTypeNodata:
-		return rrl.nodataPerSecond
+		return rrl.nodataInterval
 	case rTypeNxdomain:
-		return rrl.nxdomainsPerSecond
+		return rrl.nxdomainsInterval
 	case rTypeReferral:
-		return rrl.referralsPerSecond
+		return rrl.referralsInterval
 	case rTypeError:
-		return rrl.errorsPerSecond
+		return rrl.errorsInterval
 	}
 	return -1
 }
@@ -93,7 +92,7 @@ func (rrl *RRL) initTable() {
 		if !ok {
 			return true
 		}
-		return float64(ra.allowance)*time.Now().Sub(ra.lastCheck).Seconds() >= float64(rrl.window)
+		return time.Now().UnixNano()-ra.allowTime >= rrl.window
 	})
 }
 
@@ -142,34 +141,32 @@ func (rrl *RRL) buildToken(rtype uint8, qtype uint16, name, remoteAddr string) s
 	return ""
 }
 
-// debit will decrement an existing response account in the rrl table by one and recalculate the current balance,
+// debit will update an existing response account in the rrl table and recalculate the current balance,
 // or if the response account does not exist, it will add it.
-func (rrl *RRL) debit(allowance float64, t string) (float64, error) {
+func (rrl *RRL) debit(allowance int64, t string) (int64, error) {
 	result := rrl.table.UpdateAdd(t,
-		// the 'update' function debits the account and returns the new balance
+		// the 'update' function updates the account and returns the new balance
 		func(el *interface{}) interface{} {
 			ra := (*el).(*ResponseAccount)
 			if ra == nil {
 				return nil
 			}
-			now := time.Now()
-			ra.balance += allowance*now.Sub(ra.lastCheck).Seconds() - 1
-			if ra.balance >= allowance {
-				// balance can't exceed allowance
-				ra.balance = allowance - 1
-			} else if min := -1 * rrl.window * allowance; ra.balance < min {
-				// balance can't be more negative than window * allowance
-				ra.balance = min
+			now := time.Now().UnixNano()
+			balance := now - ra.allowTime - allowance
+			if balance >= second {
+				// positive balance can't exceed 1 second
+				balance = second - allowance
+			} else if balance < -rrl.window {
+				// balance can't be more negative than window
+				balance = -rrl.window
 			}
-			ra.lastCheck = now
-			return ra.balance
+			ra.allowTime = now - balance
+			return balance
 		},
 		// the 'add' function returns a new ResponseAccount for the response type
 		func() interface{} {
 			ra := &ResponseAccount{
-				allowance: allowance,
-				lastCheck: time.Now(),
-				balance:   allowance - 1,
+				allowTime: time.Now().UnixNano() - second + allowance,
 			}
 			return ra
 		})
@@ -180,7 +177,7 @@ func (rrl *RRL) debit(allowance float64, t string) (float64, error) {
 	if err, ok := result.(error); ok {
 		return 0, err
 	}
-	if balance, ok := result.(float64); ok {
+	if balance, ok := result.(int64); ok {
 		return balance, nil
 	}
 	return 0, errors.New("unexpected result type")

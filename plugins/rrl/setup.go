@@ -35,7 +35,7 @@ func setup(c *caddy.Controller) error {
 
 func defaultRRL() RRL {
 	return RRL{
-		window:           15,
+		window:           15 * second,
 		ipv4PrefixLength: 24,
 		ipv6PrefixLength: 56,
 		maxTableSize:     100000,
@@ -46,10 +46,10 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 	rrl := defaultRRL()
 
 	var (
-		nodataPerSecondSet    bool
-		nxdomainsPerSecondSet bool
-		referralsPerSecondSet bool
-		errorsPerSecondSet    bool
+		nodataIntervalSet    bool
+		nxdomainsIntervalSet bool
+		referralsIntervalSet bool
+		errorsIntervalSet    bool
 	)
 
 	for c.Next() {
@@ -82,7 +82,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if w <= 0 {
 						return nil, c.Err("window must be greater than zero")
 					}
-					rrl.window = w
+					rrl.window = int64(w * second)
 				case "ipv4-prefix-length":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -121,7 +121,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.responsesPerSecond = rps
+					rrl.responsesInterval = int64(second / rps)
 				case "nodata-per-second":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -134,8 +134,8 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.nodataPerSecond = rps
-					nodataPerSecondSet = true
+					rrl.nodataInterval = int64(second / rps)
+					nodataIntervalSet = true
 				case "nxdomains-per-second":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -148,8 +148,8 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.nxdomainsPerSecond = rps
-					nxdomainsPerSecondSet = true
+					rrl.nxdomainsInterval = int64(second / rps)
+					nxdomainsIntervalSet = true
 				case "referrals-per-second":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -162,8 +162,8 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.referralsPerSecond = rps
-					referralsPerSecondSet = true
+					rrl.referralsInterval = int64(second / rps)
+					referralsIntervalSet = true
 				case "errors-per-second":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -176,8 +176,8 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.errorsPerSecond = rps
-					errorsPerSecondSet = true
+					rrl.errorsInterval = int64(second / rps)
+					errorsIntervalSet = true
 				case "max-table-size":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -203,18 +203,18 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 			}
 		}
 
-		// If any per second allowances were not set, default them to responsesPerSecond
-		if !nodataPerSecondSet {
-			rrl.nodataPerSecond = rrl.responsesPerSecond
+		// If any allowance intervals were not set, default them to responsesInterval
+		if !nodataIntervalSet {
+			rrl.nodataInterval = rrl.responsesInterval
 		}
-		if !nxdomainsPerSecondSet {
-			rrl.nxdomainsPerSecond = rrl.responsesPerSecond
+		if !nxdomainsIntervalSet {
+			rrl.nxdomainsInterval = rrl.responsesInterval
 		}
-		if !referralsPerSecondSet {
-			rrl.referralsPerSecond = rrl.responsesPerSecond
+		if !referralsIntervalSet {
+			rrl.referralsInterval = rrl.responsesInterval
 		}
-		if !errorsPerSecondSet {
-			rrl.errorsPerSecond = rrl.responsesPerSecond
+		if !errorsIntervalSet {
+			rrl.errorsInterval = rrl.responsesInterval
 		}
 
 		// initialize table
@@ -224,3 +224,5 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 	}
 	return nil, nil
 }
+
+const second = 1000000000
