@@ -154,9 +154,9 @@ func (rrl *RRL) debit(allowance float64, t string) (float64, error) {
 			}
 			now := time.Now()
 			ra.balance += allowance*now.Sub(ra.lastCheck).Seconds() - 1
-			if ra.balance >= rrl.window {
-				// balance can't exceed window
-				ra.balance = rrl.window - 1
+			if ra.balance >= allowance {
+				// balance can't exceed allowance
+				ra.balance = allowance - 1
 			} else if min := -1 * rrl.window * allowance; ra.balance < min {
 				// balance can't be more negative than window * allowance
 				ra.balance = min
@@ -169,7 +169,7 @@ func (rrl *RRL) debit(allowance float64, t string) (float64, error) {
 			ra := &ResponseAccount{
 				allowance: allowance,
 				lastCheck: time.Now(),
-				balance:   rrl.window - 1,
+				balance:   allowance - 1,
 			}
 			return ra
 		})
