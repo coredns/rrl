@@ -2,8 +2,9 @@ package rrl
 
 import (
 	"fmt"
-	"github.com/mholt/caddy"
 	"testing"
+
+	"github.com/mholt/caddy"
 )
 
 func TestSetupZones(t *testing.T) {
@@ -68,11 +69,11 @@ func TestSetupAllowances(t *testing.T) {
                  }`,
 			shouldErr: false,
 			expected: RRL{
-				responsesPerSecond: 10,
-				nodataPerSecond:    10,
-				nxdomainsPerSecond: 10,
-				referralsPerSecond: 10,
-				errorsPerSecond:    10,
+				responsesInterval: second / 10,
+				nodataInterval:    second / 10,
+				nxdomainsInterval: second / 10,
+				referralsInterval: second / 10,
+				errorsInterval:    second / 10,
 			},
 		},
 		{input: `rrl {
@@ -84,11 +85,11 @@ func TestSetupAllowances(t *testing.T) {
                  }`,
 			shouldErr: false,
 			expected: RRL{
-				responsesPerSecond: 10,
-				nodataPerSecond:    5,
-				nxdomainsPerSecond: 6,
-				referralsPerSecond: 7,
-				errorsPerSecond:    8,
+				responsesInterval: second / 10,
+				nodataInterval:    second / 5,
+				nxdomainsInterval: second / 6,
+				referralsInterval: second / 7,
+				errorsInterval:    second / 8,
 			},
 		},
 		{input: `rrl {
@@ -198,20 +199,20 @@ func TestSetupAllowances(t *testing.T) {
 			continue
 		}
 
-		if rrl.responsesPerSecond != test.expected.responsesPerSecond {
-			t.Errorf("Test %v: Expected responsesPerSecond %v but found: %v", i, test.expected.responsesPerSecond, rrl.responsesPerSecond)
+		if rrl.responsesInterval != test.expected.responsesInterval {
+			t.Errorf("Test %v: Expected responsesInterval %v but found: %v", i, test.expected.responsesInterval, rrl.responsesInterval)
 		}
-		if rrl.nodataPerSecond != test.expected.nodataPerSecond {
-			t.Errorf("Test %v: Expected nodataPerSecond %v but found: %v", i, test.expected.nodataPerSecond, rrl.nodataPerSecond)
+		if rrl.nodataInterval != test.expected.nodataInterval {
+			t.Errorf("Test %v: Expected nodataInterval %v but found: %v", i, test.expected.nodataInterval, rrl.nodataInterval)
 		}
-		if rrl.nxdomainsPerSecond != test.expected.nxdomainsPerSecond {
-			t.Errorf("Test %v: Expected nxdomainsPerSecond %v but found: %v", i, test.expected.nxdomainsPerSecond, rrl.nxdomainsPerSecond)
+		if rrl.nxdomainsInterval != test.expected.nxdomainsInterval {
+			t.Errorf("Test %v: Expected nxdomainsInterval %v but found: %v", i, test.expected.nxdomainsInterval, rrl.nxdomainsInterval)
 		}
-		if rrl.referralsPerSecond != test.expected.referralsPerSecond {
-			t.Errorf("Test %v: Expected referralsPerSecond %v but found: %v", i, test.expected.referralsPerSecond, rrl.referralsPerSecond)
+		if rrl.referralsInterval != test.expected.referralsInterval {
+			t.Errorf("Test %v: Expected referralsInterval %v but found: %v", i, test.expected.referralsInterval, rrl.referralsInterval)
 		}
-		if rrl.errorsPerSecond != test.expected.errorsPerSecond {
-			t.Errorf("Test %v: Expected errorsPerSecond %v but found: %v", i, test.expected.errorsPerSecond, rrl.errorsPerSecond)
+		if rrl.errorsInterval != test.expected.errorsInterval {
+			t.Errorf("Test %v: Expected errorsInterval %v but found: %v", i, test.expected.errorsInterval, rrl.errorsInterval)
 		}
 	}
 }
@@ -231,7 +232,7 @@ func TestSetupWindow(t *testing.T) {
                  }`,
 			shouldErr: false,
 			expected: RRL{
-				window: 10,
+				window: 10 * second,
 			},
 		},
 		{input: `rrl {
@@ -436,7 +437,7 @@ func TestSetupInvalidOption(t *testing.T) {
                    blah
                  }`,
 			shouldErr: true,
-			expected: RRL{},
+			expected:  RRL{},
 		},
 	}
 

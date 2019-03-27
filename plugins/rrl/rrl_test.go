@@ -13,9 +13,9 @@ import (
 func TestDebit(t *testing.T) {
 
 	rrl := defaultRRL()
-	rrl.window = 5
-	rrl.responsesPerSecond = 10
-	rrl.nxdomainsPerSecond = 100
+	rrl.window = 5 * second
+	rrl.responsesInterval = second / 10
+	rrl.nxdomainsInterval = second / 100
 	rrl.table = cache.New(rrl.maxTableSize)
 
 	_, err := rrl.debit(rrl.allowanceForRtype(rTypeResponse), "token1")
@@ -23,14 +23,14 @@ func TestDebit(t *testing.T) {
 		t.Errorf("got error: %v", err)
 	}
 	ra, _ := rrl.table.Get("token1")
-	bal := ra.(*ResponseAccount).balance
-	if bal != rrl.responsesPerSecond-1 {
-		t.Errorf("expected balance of %v, got %v", rrl.responsesPerSecond-1, bal)
+	bal := time.Now().UnixNano() - ra.(*ResponseAccount).allowTime
+	if bal < second - rrl.responsesInterval {
+		t.Errorf("expected balance not less than %v, got %v", second - rrl.responsesInterval, bal)
 	}
 
 	bal, err = rrl.debit(rrl.allowanceForRtype(rTypeResponse), "token1")
-	if bal > rrl.responsesPerSecond-1 {
-		t.Errorf("expected balance of < %v, got %v", rrl.responsesPerSecond-1, bal)
+	if bal > second - rrl.responsesInterval {
+		t.Errorf("expected balance of < %v, got %v", second - rrl.responsesInterval, bal)
 	}
 
 	_, err = rrl.debit(rrl.allowanceForRtype(rTypeNxdomain), "token2")
@@ -39,8 +39,8 @@ func TestDebit(t *testing.T) {
 	}
 	time.Sleep(time.Second) // sleep 1 second, balance should max out
 	bal, err = rrl.debit(rrl.allowanceForRtype(rTypeNxdomain), "token2")
-	if bal != rrl.nxdomainsPerSecond-1 {
-		t.Errorf("expected balance of %v, got %v", rrl.nxdomainsPerSecond-1, bal)
+	if bal != second - rrl.nxdomainsInterval {
+		t.Errorf("expected balance of %v, got %v", rrl.window-rrl.nxdomainsInterval, bal)
 	}
 
 }
@@ -101,11 +101,11 @@ func TestAllowanceForRtype(t *testing.T) {
 	rtypes := []uint8{rTypeResponse, rTypeNodata, rTypeError, rTypeNxdomain, rTypeReferral}
 
 	rrl := defaultRRL()
-	rrl.responsesPerSecond = 100
-	rrl.nodataPerSecond = 100
-	rrl.nxdomainsPerSecond = 100
-	rrl.referralsPerSecond = 100
-	rrl.errorsPerSecond = 100
+	rrl.responsesInterval = 100
+	rrl.nodataInterval = 100
+	rrl.nxdomainsInterval = 100
+	rrl.referralsInterval = 100
+	rrl.errorsInterval = 100
 
 	for _, rtype := range rtypes {
 		got := rrl.allowanceForRtype(rtype)

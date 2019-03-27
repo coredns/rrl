@@ -2,11 +2,12 @@ package rrl
 
 import (
 	"context"
+	"strconv"
+	"testing"
+
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/test"
 	"github.com/miekg/dns"
-	"strconv"
-	"testing"
 )
 
 func BenchmarkBuildToken(b *testing.B) {
@@ -23,9 +24,9 @@ func BenchmarkBuildToken(b *testing.B) {
 
 func BenchmarkDebit(b *testing.B) {
 	rrl := RRL{
-		window:             15,
-		responsesPerSecond: 10,
-		maxTableSize:       10000,
+		window:            15 * second,
+		responsesInterval: second / 10,
+		maxTableSize:      10000,
 	}
 	rrl.initTable()
 	b.ReportAllocs()
@@ -37,15 +38,15 @@ func BenchmarkDebit(b *testing.B) {
 
 func BenchmarkServeDNS(b *testing.B) {
 	rrl := RRL{
-		Zones:              []string{"example.org."},
-		Next:               backendHandler(),
-		window:             15,
-		ipv4PrefixLength:   24,
-		ipv6PrefixLength:   56,
-		responsesPerSecond: 10,
-		nxdomainsPerSecond: 10,
-		errorsPerSecond:    10,
-		maxTableSize:       1000,
+		Zones:             []string{"example.org."},
+		Next:              backendHandler(),
+		window:            15 * second,
+		ipv4PrefixLength:  24,
+		ipv6PrefixLength:  56,
+		responsesInterval: second / 10,
+		nxdomainsInterval: second / 10,
+		errorsInterval:    second / 10,
+		maxTableSize:      1000,
 	}
 	rrl.initTable()
 

@@ -2,8 +2,9 @@ package rrl
 
 import (
 	"context"
-	"github.com/coredns/coredns/plugin/pkg/dnstest"
 	"testing"
+
+	"github.com/coredns/coredns/plugin/pkg/dnstest"
 
 	"github.com/coredns/coredns/plugin/test"
 	"github.com/miekg/dns"
@@ -15,8 +16,8 @@ func TestServeDNSRateLimit(t *testing.T) {
 	rrl := defaultRRL()
 	rrl.Next = test.HandlerFunc(fixedAnswer)
 	rrl.Zones = []string{"example.com."}
-	rrl.window = 2
-	rrl.responsesPerSecond = 1
+	rrl.window = 2 * second
+	rrl.responsesInterval = second
 	rrl.initTable()
 
 	ctx := context.TODO()
@@ -52,8 +53,8 @@ func TestServeDNStcp(t *testing.T) {
 	rrl := defaultRRL()
 	rrl.Next = test.HandlerFunc(fixedAnswer)
 	rrl.Zones = []string{"example.com."}
-	rrl.window = 2
-	rrl.responsesPerSecond = 1
+	rrl.window = 2 * second
+	rrl.responsesInterval = second
 	rrl.initTable()
 
 	ctx := context.TODO()
@@ -82,8 +83,8 @@ func TestServeDNSForeignZone(t *testing.T) {
 	rrl := defaultRRL()
 	rrl.Next = test.HandlerFunc(fixedAnswer)
 	rrl.Zones = []string{"not.example.com."}
-	rrl.window = 2
-	rrl.responsesPerSecond = 1
+	rrl.window = 2 * second
+	rrl.responsesInterval = second
 	rrl.initTable()
 
 	ctx := context.TODO()
@@ -111,8 +112,8 @@ func TestServeDNSZeroAllowance(t *testing.T) {
 	rrl := defaultRRL()
 	rrl.Next = test.HandlerFunc(fixedAnswer)
 	rrl.Zones = []string{"example.com."}
-	rrl.window = 2
-	rrl.responsesPerSecond = 0 // zero allowance should disable rate limiting
+	rrl.window = 2 * second
+	rrl.responsesInterval = 0 // zero allowance should disable rate limiting
 	rrl.initTable()
 
 	ctx := context.TODO()
