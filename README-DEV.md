@@ -83,7 +83,7 @@ The *ResponseAccount* *token* uniquely identifies a category of responses and is
 comprised the following data extracted from a response:
 
 * Prefix of the client IP (per the  ipv4/6-prefix-length)
-* Requested name (qname) excluding response type of error (see response type below)
+* Requested name (qname) see exceptions below
 * Requested type (qtype) excluding response type of error (see response type below)
 * Response type (each corresponding to the configurable per-second allowances)
   * response - for positive responses that contain answers
@@ -93,6 +93,8 @@ comprised the following data extracted from a response:
   * error - for all DNS errors (except NXDOMAIN)
 
 To better protect against attacks using invalid requests, requested name and type are not used in the *token* for error type requests. In other words, all error responses are limited collectively per client, regardless of qname or qtype.
+
+For nxdomain and referrals, the authoritative domain is used instead of the full qname.
 
 The *ResponseAccount balance* is an integer. When the *balance* becomes negative
 for a *ResponseAccount*, any responses that match its *token* are dropped until
