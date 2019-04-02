@@ -129,6 +129,10 @@ Since the *ResponseAccount* table will be read and written to from parallel thre
 
 ## Follow up features
 
+### Wildcard Flooding Mitigation
+
+Implement better protect against wildcard flooding. For domains CoreDNS is authoritative for, we can introduce an interface `Authoritative` to be implemented by any plugins that are authoritative.  The interface would include functions listing the zones the pliugin is authortiative for, and all wildcard base domains produced by the plugin.  RRL could check if plugins implememt `Authoritative`, and compare responses to the lists of authoritative zones and wildcard base domains to account for responses in the same way BIND does.  We would also use this to more correctly check for authoritative domains for negative responses and referrals, for which we currently rely on neg cache SOAs.
+
 ### Slip ratio
 
 With a slip ratio defined, responses will not always be dropped when a balance goes negative - we let some slip through.
