@@ -58,6 +58,9 @@ rrl [ZONES...] {
 
 * `max-table-size SIZE` - the maximum number of responses to be tracked at one time. When exceeded, rrl stops rate limiting new responses. Defaults to 100000.
 
+## External Plugin
+
+*RRL* is an *external* plugin, which means it is not included in CoreDNS releases.  To use *rrl*, you'll need to build a CoreDNS image with *rrl* included (near the top of the plugin list). See the docs in [plugin.cfg](https://github.com/coredns/coredns/blob/master/plugin.cfg).
 
 ## Examples
 
