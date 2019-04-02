@@ -85,8 +85,7 @@ Per the BIND 9.11 ARM...
 > Responses generated from local wildcards are counted and limited as if they were for the parent domain name. 
 > This controls flooding using random.wild.example.com.
 
-CoreDNS can serve plugins that can be authoritative for wildcard sub domains, but getting rrl to be aware of these is complex.
-Therfore in CoreDNS *rrl*, wildcard generated records are accounted for individually.
+In CoreDNS *rrl* wildcard responses are accounted for individually.
 
 ## Additional References
 
