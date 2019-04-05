@@ -156,7 +156,7 @@ Response types that cannot be truncated such as `REFUSED` and `SERVFAIL` should 
 
 ### All-per-second
 
-TBD
+TBD (upper limit rates for all response types)
 
 ### Exposing metrics
 
