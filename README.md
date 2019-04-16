@@ -60,7 +60,12 @@ rrl [ZONES...] {
 
 ## External Plugin
 
-*RRL* is an *external* plugin, which means it is not included in CoreDNS releases.  To use *rrl*, you'll need to build a CoreDNS image with *rrl* included (near the top of the plugin list). See the docs in [plugin.cfg](https://github.com/coredns/coredns/blob/master/plugin.cfg).
+*RRL* is an *external* plugin, which means it is not included in CoreDNS releases.  To use *rrl*, you'll need to build a CoreDNS image with *rrl* included (near the top of the plugin list). In a nutshell you'll need to:
+* Clone https://github.com/coredns/coredns
+* Add this plugin to [plugin.cfg](https://github.com/coredns/coredns/blob/master/plugin.cfg) per instructions therein.
+* `make -f Makefile.release DOCKER=your-docker-repo release`
+* `make -f Makefile.release DOCKER=your-docker-repo docker`
+* `make -f Makefile.release DOCKER=your-docker-repo docker-push`
 
 ## Examples
 
