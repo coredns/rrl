@@ -121,7 +121,11 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.responsesInterval = int64(second / rps)
+					if rps == 0.0 {
+						rrl.responsesInterval = 0
+					} else {
+						rrl.responsesInterval = int64(second / rps)
+					}
 				case "nodata-per-second":
 					args := c.RemainingArgs()
 					if len(args) != 1 {
@@ -134,7 +138,11 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.nodataInterval = int64(second / rps)
+					if rps == 0.0 {
+						rrl.nodataInterval = 0
+					} else {
+						rrl.nodataInterval = int64(second / rps)
+					}
 					nodataIntervalSet = true
 				case "nxdomains-per-second":
 					args := c.RemainingArgs()
@@ -148,7 +156,11 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.nxdomainsInterval = int64(second / rps)
+					if rps == 0.0 {
+						rrl.nxdomainsInterval = 0
+					} else {
+						rrl.nxdomainsInterval = int64(second / rps)
+					}
 					nxdomainsIntervalSet = true
 				case "referrals-per-second":
 					args := c.RemainingArgs()
@@ -162,7 +174,11 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.referralsInterval = int64(second / rps)
+					if rps == 0.0 {
+						rrl.referralsInterval = 0
+					} else {
+						rrl.referralsInterval = int64(second / rps)
+					}
 					referralsIntervalSet = true
 				case "errors-per-second":
 					args := c.RemainingArgs()
@@ -176,7 +192,11 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					if rps < 0 {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
-					rrl.errorsInterval = int64(second / rps)
+					if rps == 0.0 {
+						rrl.errorsInterval = 0
+					} else {
+						rrl.errorsInterval = int64(second / rps)
+					}
 					errorsIntervalSet = true
 				case "max-table-size":
 					args := c.RemainingArgs()
