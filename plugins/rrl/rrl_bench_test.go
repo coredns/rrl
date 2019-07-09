@@ -68,10 +68,20 @@ func BenchmarkServeDNS(b *testing.B) {
 	l := len(reqs)
 	b.ReportAllocs()
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		rrl.ServeDNS(ctx, &test.ResponseWriter{}, reqs[j])
-		j = (j + 1) % l
-	}
+
+	b.Run("with-rrl", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			rrl.ServeDNS(ctx, &test.ResponseWriter{}, reqs[j])
+			j = (j + 1) % l
+		}
+	})
+
+	b.Run("without-rrl", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			rrl.Next.ServeDNS(ctx, &test.ResponseWriter{}, reqs[j])
+			j = (j + 1) % l
+		}
+	})
 }
 
 // backendHandler returns a response based on the first character of the qname.
