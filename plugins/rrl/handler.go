@@ -13,7 +13,7 @@ import (
 func (rrl *RRL) Name() string { return "rrl" }
 
 // ServeDNS implements the Handler interface.
-func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (rcode int, err error) {
+func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 
 	// immediately pass to next plugin if the request is over tcp
@@ -29,7 +29,10 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 
 	// create a non-writer, because we need to look at the response before writing to the client
 	nw := nonwriter.New(w)
-	rcode, err = plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, nw, r)
+	rcode, err := plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, nw, r)
+	if err != nil || nw.Msg == nil {
+		return rcode, err
+	}
 
 	// get token for response and debit the balance
 	rtype := responseType(nw.Msg)
