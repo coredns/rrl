@@ -24,7 +24,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 
 	// Limit request rate
 	if rrl.requestsInterval != 0 {
-		t := state.IP() // todo make a function
+		t := rrl.addrPrefix(state.RemoteAddr())
 		b, err := rrl.debit(rrl.requestsInterval, t)
 		// if the balance is negative, drop the request (don't write response to client)
 		if b < 0 && err == nil {
