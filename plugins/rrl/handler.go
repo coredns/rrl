@@ -29,6 +29,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		// if the balance is negative, drop the request (don't write response to client)
 		if b < 0 && err == nil {
 			log.Debugf("dropped request from %v (token='%v', balance=%.1f)", state.IP(), t, float64(b)/float64(rrl.requestsInterval))
+			RequestsDropped.WithLabelValues(state.IP()).Add(1)
 			// always return success, to prevent writing of error statuses to client
 			return dns.RcodeSuccess, nil
 		}
@@ -62,6 +63,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	if b < 0 && err == nil {
 		log.Debugf("dropped response to %v for \"%v\" %v (token='%v', balance=%.1f)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, float64(b)/float64(allowance))
 		// always return success, to prevent writing of error statuses to client
+		ResponsesDropped.WithLabelValues(state.IP()).Add(1)
 		return dns.RcodeSuccess, nil
 	}
 
