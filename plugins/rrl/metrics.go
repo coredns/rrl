@@ -8,17 +8,17 @@ import (
 
 // Variables declared for monitoring.
 var (
-	RequestsDropped = prometheus.NewCounterVec(prometheus.CounterOpts{
+	RequestsExceeded = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: plugin.Namespace,
 		Subsystem: "rrl",
-		Name:      "requests_dropped_total",
-		Help:      "Counter of requests dropped due to QPS limit.",
+		Name:      "requests_exceeded_total",
+		Help:      "Counter of requests exceeding QPS limit.",
 	}, []string{"client_ip"})
 
-	ResponsesDropped = prometheus.NewCounterVec(prometheus.CounterOpts{
+	ResponsesExceeded = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: plugin.Namespace,
 		Subsystem: "rrl",
-		Name:      "responses_dropped_total",
-		Help:      "Counter of responses dropped due to QPS limit.",
+		Name:      "responses_exceeded_total",
+		Help:      "Counter of responses exceeding QPS limit.",
 	}, []string{"client_ip"})
 )

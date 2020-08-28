@@ -32,6 +32,8 @@ type RRL struct {
 
 	requestsInterval int64
 
+	reportOnly bool
+
 	maxTableSize int
 
 	table *cache.Cache

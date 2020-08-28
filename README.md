@@ -54,6 +54,7 @@ rrl [ZONES...] {
     errors-per-second ALLOWANCE
     requests-per-second ALLOWANCE
     max-table-size SIZE
+    report-only
 }
 ```
 
@@ -76,6 +77,15 @@ rrl [ZONES...] {
 * `requests-per-second ALLOWANCE` - the number of requests allowed per second. An **ALLOWANCE** of 0 disables rate limiting of requests. Default 0.
 
 * `max-table-size SIZE` - the maximum number of responses to be tracked at one time. When exceeded, rrl stops rate limiting new responses. Defaults to 100000.
+
+* `report-only` -  Do not drop requests/responses when rates are exceeded, only log metrics. Defaults to false.
+
+## Metrics
+
+If monitoring is enabled (via the *prometheus* plugin) then the following metric are exported:
+
+* `coredns_rrl_responses_exceeded_total{client_ip}` - Counter of responses exceeding QPS limit.
+* `coredns_rrl_requests_exceeded_total{client_ip}` - Counter of requests exceeding QPS limit.
 
 ## External Plugin
 

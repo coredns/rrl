@@ -32,7 +32,7 @@ func setup(c *caddy.Controller) error {
 	})
 
 	c.OnStartup(func() error {
-		metrics.MustRegister(c, RequestsDropped, ResponsesDropped)
+		metrics.MustRegister(c, RequestsExceeded, ResponsesExceeded)
 		return nil
 	})
 
@@ -168,6 +168,12 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 						return nil, c.Errf("%v cannot be negative", c.Val())
 					}
 					rrl.maxTableSize = i
+				case "report-only":
+					args := c.RemainingArgs()
+					if len(args) > 0 {
+						return nil, c.ArgErr()
+					}
+					rrl.reportOnly = true
 				default:
 					if c.Val() != "}" {
 						return nil, c.Errf("unknown property '%s'", c.Val())
