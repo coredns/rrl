@@ -66,7 +66,9 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		log.Debugf("response rate exceeded to %v for \"%v\" %v (token='%v', balance=%.1f)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, float64(b)/float64(allowance))
 		// always return success, to prevent writing of error statuses to client
 		ResponsesExceeded.WithLabelValues(state.IP()).Add(1)
-		return dns.RcodeSuccess, nil
+		if !rrl.reportOnly {
+			return dns.RcodeSuccess, nil
+		}
 	}
 
 	if err != nil {
