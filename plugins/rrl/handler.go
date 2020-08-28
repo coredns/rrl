@@ -16,14 +16,27 @@ func (rrl *RRL) Name() string { return "rrl" }
 func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 
-	// immediately pass to next plugin if the request is over tcp
-	if state.Proto() == "tcp" {
+	// only limit rates for applied zones
+	zone := plugin.Zones(rrl.Zones).Matches(state.Name())
+	if zone == "" {
 		return plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, w, r)
 	}
 
-	// immediately pass to next plugin if the request not in the rrl zones
-	zone := plugin.Zones(rrl.Zones).Matches(state.Name())
-	if zone == "" {
+	// Limit request rate
+	if rrl.requestsInterval != 0 {
+		t := state.IP() // todo make a function
+		b, err := rrl.debit(rrl.requestsInterval, t)
+		// if the balance is negative, drop the request (don't write response to client)
+		if b < 0 && err == nil {
+			log.Debugf("dropped request from %v (token='%v', balance=%.1f)", state.IP(), t, float64(b)/float64(rrl.requestsInterval))
+			// always return success, to prevent writing of error statuses to client
+			return dns.RcodeSuccess, nil
+		}
+	}
+
+	// Limit response rate
+	// dont limit responses rates for tcp requests
+	if state.Proto() == "tcp" {
 		return plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, w, r)
 	}
 
