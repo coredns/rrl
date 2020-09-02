@@ -30,6 +30,10 @@ type RRL struct {
 	referralsInterval int64
 	errorsInterval    int64
 
+	requestsInterval int64
+
+	reportOnly bool
+
 	maxTableSize int
 
 	table *cache.Cache
