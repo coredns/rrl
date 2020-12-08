@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/caddyserver/caddy"
+	"github.com/coredns/caddy"
 )
 
 func TestSetupZones(t *testing.T) {
@@ -361,11 +361,11 @@ func TestSetupPrefixes(t *testing.T) {
 			continue
 		}
 
-		if string(rrl.ipv4PrefixLength) != string(test.expected.ipv4PrefixLength) {
-			t.Errorf("Test %v: Expected ipv4PrefixLength %v but found: %v", i, string(test.expected.ipv4PrefixLength), string(rrl.ipv4PrefixLength))
+		if fmt.Sprint(rrl.ipv4PrefixLength) != fmt.Sprint(test.expected.ipv4PrefixLength) {
+			t.Errorf("Test %v: Expected ipv4PrefixLength %v but found: %v", i, fmt.Sprint(test.expected.ipv4PrefixLength), fmt.Sprint(rrl.ipv4PrefixLength))
 		}
-		if string(rrl.ipv6PrefixLength) != string(test.expected.ipv6PrefixLength) {
-			t.Errorf("Test %v: Expected ipv6PrefixLength %v but found: %v", i, string(test.expected.ipv6PrefixLength), string(rrl.ipv6PrefixLength))
+		if fmt.Sprint(rrl.ipv6PrefixLength) != fmt.Sprint(test.expected.ipv6PrefixLength) {
+			t.Errorf("Test %v: Expected ipv6PrefixLength %v but found: %v", i, fmt.Sprint(test.expected.ipv6PrefixLength), fmt.Sprint(rrl.ipv6PrefixLength))
 		}
 	}
 }
