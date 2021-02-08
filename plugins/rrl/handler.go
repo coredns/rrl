@@ -2,6 +2,7 @@ package rrl
 
 import (
 	"context"
+	"errors"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/pkg/nonwriter"
@@ -32,7 +33,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 			RequestsExceeded.WithLabelValues(state.IP()).Add(1)
 			// always return success, to prevent writing of error statuses to client
 			if !rrl.reportOnly {
-				return dns.RcodeSuccess, nil
+				return dns.RcodeSuccess, errReqRateLimit
 			}
 		}
 	}
@@ -67,7 +68,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		// always return success, to prevent writing of error statuses to client
 		ResponsesExceeded.WithLabelValues(state.IP()).Add(1)
 		if !rrl.reportOnly {
-			return dns.RcodeSuccess, nil
+			return dns.RcodeSuccess, errRespRateLimit
 		}
 	}
 
@@ -79,3 +80,8 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	err = w.WriteMsg(nw.Msg)
 	return rcode, err
 }
+
+var (
+	errReqRateLimit  = errors.New("query rate exceeded the limit")
+	errRespRateLimit = errors.New("response rate exceeded the limit")
+)
