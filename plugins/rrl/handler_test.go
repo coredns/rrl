@@ -36,8 +36,8 @@ func TestServeDNSRateLimit(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		w = dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := rrl.ServeDNS(ctx, w, tc.Msg())
-		if err != nil {
-			t.Errorf("expected no error, got: %v", err)
+		if err == nil {
+			t.Error("expected rate limit error, got no error")
 		}
 	}
 
