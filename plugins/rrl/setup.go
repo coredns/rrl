@@ -17,6 +17,7 @@ func init() {
 		ServerType: "dns",
 		Action:     setup,
 	})
+	dnsserver.Directives = append(dnsserver.Directives, "rrl")
 }
 
 func setup(c *caddy.Controller) error {
