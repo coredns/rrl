@@ -19,13 +19,15 @@ func TestSetupZones(t *testing.T) {
 				Zones: []string{},
 			},
 		},
-		{input: `rrl {}`,
+		{input: `rrl {
+}`,
 			shouldErr: false,
 			expected: RRL{
 				Zones: []string{},
 			},
 		},
-		{input: `rrl example.com {}`,
+		{input: `rrl example.com {
+}`,
 			shouldErr: false,
 			expected: RRL{
 				Zones: []string{"example.com."},
