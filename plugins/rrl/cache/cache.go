@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 	"hash/fnv"
 	"sync"
 )
