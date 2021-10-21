@@ -2,7 +2,6 @@ package rrl
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/coredns/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
@@ -53,19 +52,7 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 	)
 
 	for c.Next() {
-		for _, z := range c.RemainingArgs() {
-			if strings.Contains(z, "{") {
-				continue
-			}
-			rrl.Zones = append(rrl.Zones, z)
-		}
-		if len(rrl.Zones) == 0 {
-			rrl.Zones = make([]string, len(c.ServerBlockKeys))
-			copy(rrl.Zones, c.ServerBlockKeys)
-		}
-		for i, str := range rrl.Zones {
-			rrl.Zones[i] = plugin.Host(str).Normalize()
-		}
+		rrl.Zones = plugin.OriginsFromArgsOrServerBlock(c.RemainingArgs(), c.ServerBlockKeys)
 
 		if c.NextBlock() {
 			for {
