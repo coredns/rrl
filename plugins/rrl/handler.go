@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 
+	"github.com/miekg/dns"
+
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/pkg/nonwriter"
 	"github.com/coredns/coredns/request"
-	"github.com/miekg/dns"
 )
 
 // Name implements the Handler interface.
@@ -26,7 +27,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	// Limit request rate
 	if rrl.requestsInterval != 0 {
 		t := rrl.addrPrefix(state.RemoteAddr())
-		b, err := rrl.debit(rrl.requestsInterval, t)
+		b, _, err := rrl.debit(rrl.requestsInterval, t) // ignore slip when request limit is exceeded (there is no response to slip)
 		// if the balance is negative, drop the request (don't write response to client)
 		if b < 0 && err == nil {
 			log.Debugf("request rate exceeded from %v (token='%v', balance=%.1f)", state.IP(), t, float64(b)/float64(rrl.requestsInterval))
@@ -60,7 +61,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		err = w.WriteMsg(nw.Msg)
 		return rcode, err
 	}
-	b, err := rrl.debit(allowance, t)
+	b, slip, err := rrl.debit(allowance, t)
 
 	// if the balance is negative, drop the response (don't write response to client)
 	if b < 0 && err == nil {
@@ -68,7 +69,15 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		// always return success, to prevent writing of error statuses to client
 		ResponsesExceeded.WithLabelValues(state.IP()).Add(1)
 		if !rrl.reportOnly {
-			return dns.RcodeSuccess, errRespRateLimit
+			if !slip {
+				// drop the response.  Return success, otherwise server will return an error response to client.
+				return dns.RcodeSuccess, errRespRateLimit
+			}
+			// truncate the response to just the header and let it slip through
+			nw.Msg.Ns = []dns.RR{}
+			nw.Msg.Answer = []dns.RR{}
+			nw.Msg.Extra = []dns.RR{}
+			nw.Msg.Truncated = true
 		}
 	}
 

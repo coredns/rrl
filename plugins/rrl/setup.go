@@ -130,6 +130,19 @@ func rrlParse(c *caddy.Controller) (*RRL, error) {
 					}
 					rrl.errorsInterval = i
 					errorsIntervalSet = true
+				case "slip-ratio":
+					args := c.RemainingArgs()
+					if len(args) != 1 {
+						return nil, c.ArgErr()
+					}
+					i, err := strconv.Atoi(c.Val())
+					if err != nil {
+						return nil, c.Errf("slip-ratio '%v' invalid value. %v", c.Val(), err)
+					}
+					if i < 0 || i > 10 {
+						return nil, c.Errf("slip-ratio '%v' must be between 0 and 10", c.Val())
+					}
+					rrl.slipRatio = uint(i)
 				case "requests-per-second":
 					i, err := getIntervalArg(c)
 					if err != nil {

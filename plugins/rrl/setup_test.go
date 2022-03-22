@@ -429,6 +429,69 @@ func TestSetupTableSize(t *testing.T) {
 	}
 }
 
+func TestSetupSlipRatio(t *testing.T) {
+	tests := []struct {
+		input     string
+		shouldErr bool
+		expected  RRL
+	}{
+		{input: `rrl`,
+			shouldErr: false,
+			expected:  defaultRRL(),
+		},
+		{input: `rrl {
+                   slip-ratio 5
+                 }`,
+			shouldErr: false,
+			expected:  RRL{slipRatio: 5},
+		},
+		{input: `rrl {
+                   slip-ratio -1
+                 }`,
+			shouldErr: true,
+			expected:  RRL{},
+		},
+		{input: `rrl {
+                   slip-ratio 2 3
+                 }`,
+			shouldErr: true,
+			expected:  RRL{},
+		},
+		{input: `rrl {
+                   slip-ratio nine
+                 }`,
+			shouldErr: true,
+			expected:  RRL{},
+		},
+		{input: `rrl {
+                   slip-ratio
+                 }`,
+			shouldErr: true,
+			expected:  RRL{},
+		},
+	}
+
+	for i, test := range tests {
+		c := caddy.NewTestController("dns", test.input)
+		rrl, err := rrlParse(c)
+
+		if test.shouldErr && err == nil {
+			t.Errorf("Test %v: Expected error but found nil", i)
+			continue
+		} else if !test.shouldErr && err != nil {
+			t.Errorf("Test %v: Expected no error but found error: %v", i, err)
+			continue
+		}
+		if test.shouldErr && err != nil {
+			continue
+		}
+
+		if rrl.slipRatio != test.expected.slipRatio {
+			t.Errorf("Test %v: Expected slipRatio %v but found: %v", i, test.expected.slipRatio, rrl.slipRatio)
+		}
+	}
+}
+
 func TestSetupInvalidOption(t *testing.T) {
 	tests := []struct {
 		input     string
