@@ -1,12 +1,14 @@
 package rrl
 
 import (
+	"context"
 	"errors"
 	"net"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/coredns/coredns/plugin/metadata"
 	"github.com/coredns/rrl/plugins/rrl/cache"
 
 	"github.com/miekg/dns"
@@ -104,7 +106,7 @@ func (rrl *RRL) initTable() {
 }
 
 // responseToToken returns a token string for the response in writer
-func (rrl *RRL) responseToToken(nw *nonwriter.Writer, rtype byte) string {
+func (rrl *RRL) responseToToken(ctx context.Context, nw *nonwriter.Writer, rtype byte) string {
 	var name string
 	if rtype == rTypeNxdomain || rtype == rTypeReferral {
 		// for these types we index on the authoritative domain, not the full qname
@@ -113,7 +115,12 @@ func (rrl *RRL) responseToToken(nw *nonwriter.Writer, rtype byte) string {
 			name = nw.Msg.Ns[0].Header().Name
 		}
 	} else {
-		name = nw.Msg.Question[0].Name
+		// if the record was synthesized from a wildcard record, set name to the wildcard record parent
+		if f := metadata.ValueFunc(ctx, "zone/wildcard"); f != nil {
+			name = f()[2:] // strip "*." to get the parent of the wildcard record
+		} else {
+			name = nw.Msg.Question[0].Name
+		}
 	}
 	return rrl.buildToken(rtype, nw.Msg.Question[0].Qtype, name, nw.RemoteAddr().String())
 }
