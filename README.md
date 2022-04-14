@@ -52,6 +52,7 @@ rrl [ZONES...] {
     nxdomains-per-second ALLOWANCE
     referrals-per-second ALLOWANCE
     errors-per-second ALLOWANCE
+    slip-ratio N
     requests-per-second ALLOWANCE
     max-table-size SIZE
     report-only
@@ -73,6 +74,12 @@ rrl [ZONES...] {
 * `referrals-per-second ALLOWANCE` - the number of referral responses allowed per second. An **ALLOWANCE** of 0 disables rate limiting of referral responses. Defaults to responses-per-second.
 
 * `errors-per-second ALLOWANCE` - the number of error responses allowed per second (excluding NXDOMAIN). An **ALLOWANCE** of 0 disables rate limiting of error responses. Defaults to responses-per-second.
+
+* `slip-ratio N` - Let every **N**th dropped response slip through truncated. Responses that slip through are marked 
+  truncated and have all sections emptied before being relayed. A client receiving a truncated response will retry using TCP,
+  which is not subject to response rate limiting.  This provides a way for clients making legitimate requests to get an 
+  answer while their IP prefix is being blocked by response rate limiting. For **N** = 1 slip every dropped response through;
+  **N** = 4 slip every 4th dropped response through; etc. The default is **N** = 0, don't slip any responses through.
 
 * `requests-per-second ALLOWANCE` - the number of requests allowed per second. An **ALLOWANCE** of 0 disables rate limiting of requests. Default 0.
 

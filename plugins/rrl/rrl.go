@@ -9,9 +9,10 @@ import (
 
 	"github.com/coredns/rrl/plugins/rrl/cache"
 
+	"github.com/miekg/dns"
+
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/pkg/nonwriter"
-	"github.com/miekg/dns"
 )
 
 // RRL performs response rate limiting
@@ -32,6 +33,8 @@ type RRL struct {
 
 	requestsInterval int64
 
+	slipRatio uint
+
 	reportOnly bool
 
 	maxTableSize int
@@ -40,9 +43,9 @@ type RRL struct {
 }
 
 // ResponseAccount holds accounting for a category of response
-// Next response is allowed if current time >= allowTime
 type ResponseAccount struct {
-	allowTime int64
+	allowTime     int64 // Next response is allowed if current time >= allowTime
+	slipCountdown uint  // When at 1, a dropped response slips through instead of being dropped
 }
 
 // Theses constants are categories of response types
@@ -147,7 +150,12 @@ func (rrl *RRL) buildToken(rtype uint8, qtype uint16, name, remoteAddr string) s
 
 // debit will update an existing response account in the rrl table and recalculate the current balance,
 // or if the response account does not exist, it will add it.
-func (rrl *RRL) debit(allowance int64, t string) (int64, error) {
+func (rrl *RRL) debit(allowance int64, t string) (int64, bool, error) {
+
+	type balances struct {
+		balance int64
+		slip    bool
+	}
 	result := rrl.table.UpdateAdd(t,
 		// the 'update' function updates the account and returns the new balance
 		func(el *interface{}) interface{} {
@@ -165,26 +173,36 @@ func (rrl *RRL) debit(allowance int64, t string) (int64, error) {
 				balance = -rrl.window
 			}
 			ra.allowTime = now - balance
-			return balance
+			if balance > 0 || ra.slipCountdown == 0 {
+				return balances{balance, false}
+			}
+			if ra.slipCountdown == 1 {
+				ra.slipCountdown = rrl.slipRatio
+				return balances{balance, true}
+			}
+			ra.slipCountdown -= 1
+			return balances{balance, false}
+
 		},
 		// the 'add' function returns a new ResponseAccount for the response type
 		func() interface{} {
 			ra := &ResponseAccount{
-				allowTime: time.Now().UnixNano() - second + allowance,
+				allowTime:     time.Now().UnixNano() - second + allowance,
+				slipCountdown: rrl.slipRatio,
 			}
 			return ra
 		})
 
 	if result == nil {
-		return 0, nil
+		return 0, false, nil
 	}
 	if err, ok := result.(error); ok {
-		return 0, err
+		return 0, false, err
 	}
-	if balance, ok := result.(int64); ok {
-		return balance, nil
+	if b, ok := result.(balances); ok {
+		return b.balance, b.slip, nil
 	}
-	return 0, errors.New("unexpected result type")
+	return 0, false, errors.New("unexpected result type")
 }
 
 // addrPrefix returns the address prefix of the net.Addr style address string (e.g. 1.2.3.4:1234 or [1:2::3:4]:1234)
