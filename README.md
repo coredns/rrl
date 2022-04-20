@@ -126,7 +126,11 @@ Per the BIND 9.11 ARM...
 > Responses generated from local wildcards are counted and limited as if they were for the parent domain name. 
 > This controls flooding using random.wild.example.com.
 
-In CoreDNS *rrl* wildcard responses are accounted for individually.
+CoreDNS's *rrl* plugin accounts for wildcard responses individually.  This enables an attacker to launch an undetected reflection attack.
+
+The following PRs are pending review to close this vulnerability:
+* in this plugin, coredns/rrl: https://github.com/coredns/rrl/pull/34
+* and the required changes to CoreDNS, coredns/coredns: https://github.com/coredns/coredns/pull/5308
 
 ## Additional References
 
