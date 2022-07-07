@@ -87,9 +87,30 @@ rrl [ZONES...] {
 
 * `report-only` -  Do not drop requests/responses when rates are exceeded, only log metrics. Defaults to false.
 
+## Mitigate Wildcard Flooding with the metadata Plugin
+
+An attacker can evade _rrl_ rate limits when launching a reflection attack if they know of the existence of a wildcard record.
+In a nutshell, the attacker can spread the reflection attack across an unlimited number of unique query names synthesized by
+a wildcard keeping the rate of responses for each individual name under limits.
+To protect against this, enable the _metadata_ plugin. When the _metadata_ plugin is enabled, _rrl_ will account for all
+responses synthesized by known wildcards under the parent domain of the wildcard. e.g. Both `a.example.org.` and
+`a.example.org.` would be accounted for as `example.org.`, if they are synthesized from the wildcard record `*.example.org.`
+This approach follows BIND9's solution to the same problem.
+
+*Important:*
+* The _metadata_ plugin MUST be enabled for this to work.
+* CoreDNS MUST be >= *TBD*. Plugins in CoreDNS do not produce the required metadata until this version.
+* This cannot protect against attacks leveraging wildcard records hosted by upstream nameservers.
+* External plugins that can synthesize wildcard responses must be updated produce the metadata `zone/wildcard` in order
+  to protect against flooding with wildcards it serves.
+* Some plugins such as `rewrite` and `template` can emulate wildcard-like behavior in such a way that they can be leveraged
+  in the same way by an attacker to launch an undetected reflection attack. This is possible if the plugin produces a
+  positive answer for an unbounded set of questions.  `rewrite` and `template` do not produce the metadata required to 
+  mitigate wildcard flooding.
+
 ## Metrics
 
-If monitoring is enabled (via the *prometheus* plugin) then the following metric are exported:
+If monitoring is enabled (via the *prometheus* plugin) then the following metrics are exported:
 
 * `coredns_rrl_responses_exceeded_total{client_ip}` - Counter of responses exceeding QPS limit.
 * `coredns_rrl_requests_exceeded_total{client_ip}` - Counter of requests exceeding QPS limit.
@@ -117,20 +138,9 @@ Example 1
 
 ~~~
 
-## Bugs / Known Issues / Limitations
+## Known Issues
 
-BIND9's implementation of Response Rate Limiting will rate limit all wildcard generated records in one account per the base domain of the wild card.  e.g. Both `a.dom.com.` and  `b.dom.com.` would be accounted for as `dom.com.`, if they are generated from the wildcard record `*.dom.com.`
-
-Per the BIND 9.11 ARM...
-
-> Responses generated from local wildcards are counted and limited as if they were for the parent domain name. 
-> This controls flooding using random.wild.example.com.
-
-CoreDNS's *rrl* plugin accounts for wildcard responses individually.  This enables an attacker to launch an undetected reflection attack.
-
-The following PRs are pending review to close this vulnerability:
-* in this plugin, coredns/rrl: https://github.com/coredns/rrl/pull/34
-* and the required changes to CoreDNS, coredns/coredns: https://github.com/coredns/coredns/pull/5308
+*rrl* is vulnerable to wildcard flooding. See the section above for mitigating this vulnerability: **Mitigate Wildcard Flooding with the metadata Plugin**
 
 ## Additional References
 
