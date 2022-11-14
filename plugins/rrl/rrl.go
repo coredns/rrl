@@ -96,8 +96,8 @@ func (rrl *RRL) allowanceForRtype(rtype uint8) int64 {
 func (rrl *RRL) initTable() {
 	rrl.table = cache.New(rrl.maxTableSize)
 	// This eviction function returns true if the allowance is >= max value (window)
-	rrl.table.SetEvict(func(el *interface{}) bool {
-		ra, ok := (*el).(ResponseAccount)
+	rrl.table.SetEvict(func(el interface{}) bool {
+		ra, ok := el.(*ResponseAccount)
 		if !ok {
 			return true
 		}
@@ -165,11 +165,11 @@ func (rrl *RRL) debit(allowance int64, t string) (int64, bool, error) {
 	}
 	result := rrl.table.UpdateAdd(t,
 		// the 'update' function updates the account and returns the new balance
-		func(el *interface{}) interface{} {
-			ra := (*el).(*ResponseAccount)
-			if ra == nil {
+		func(el interface{}) interface{} {
+			if el == nil {
 				return nil
 			}
+			ra := el.(*ResponseAccount)
 			now := time.Now().UnixNano()
 			balance := now - ra.allowTime - allowance
 			if balance >= second {

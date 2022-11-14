@@ -20,15 +20,16 @@ func TestCacheAddGetRemove(t *testing.T) {
 func TestCacheUpdateAdd(t *testing.T) {
 	c := New(4)
 
-	updateFunc := func(el *interface{}) interface{} {
-		i := (*el).(int)
-		i += 1
-		*el = i
-		return i
+	updateFunc := func(el interface{}) interface{} {
+		iptr := el.(*int)
+		*iptr += 1
+		el = iptr
+		return iptr
 	}
 
 	addFunc := func() interface{} {
-		return 1
+		i := 1
+		return &i
 	}
 
 	// first call should insert value returned by add
@@ -38,7 +39,7 @@ func TestCacheUpdateAdd(t *testing.T) {
 	if !found {
 		t.Fatal("failed to find inserted record")
 	}
-	i := (el).(int)
+	i := *(el.(*int))
 	if i != 1 {
 		t.Fatalf("expected to see inital value of 1, got %v", i)
 	}
@@ -46,7 +47,7 @@ func TestCacheUpdateAdd(t *testing.T) {
 	// second call should increment the value, and return it
 	el = c.UpdateAdd("a", updateFunc, addFunc)
 
-	i = (el).(int)
+	i = *(el.(*int))
 
 	if i != 2 {
 		t.Fatalf("expected to see return value of 2, got %v", i)
@@ -55,7 +56,7 @@ func TestCacheUpdateAdd(t *testing.T) {
 	if !found {
 		t.Fatal("failed to find inserted record")
 	}
-	i = (el).(int)
+	i = *(el.(*int))
 	if i != 2 {
 		t.Fatalf("expected to see value incremented to 2, got %v", i)
 	}
