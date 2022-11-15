@@ -62,15 +62,16 @@ func TestShardLenEvict(t *testing.T) {
 func TestShardUpdateAdd(t *testing.T) {
 	s := newShard(1)
 
-	updateFunc := func(el *interface{}) interface{} {
-		i := (*el).(int)
-		i += 1
-		*el = i
-		return i
+	updateFunc := func(el interface{}) interface{} {
+		iptr := el.(*int)
+		*iptr += 1
+		el = iptr
+		return iptr
 	}
 
 	addFunc := func() interface{} {
-		return 1
+		i := 1
+		return &i
 	}
 
 	// first call should insert value returned by add
@@ -80,25 +81,25 @@ func TestShardUpdateAdd(t *testing.T) {
 	if !found {
 		t.Fatal("failed to find inserted record")
 	}
-	i := (el).(int)
-	if i != 1 {
-		t.Fatalf("expected to see inital valie of 1, got %v", i)
+	i := el.(*int)
+	if *i != 1 {
+		t.Fatalf("expected to see inital value of 1, got %v", *i)
 	}
 
 	// second call should increment the value, and return it
 	el = s.UpdateAdd("a", updateFunc, addFunc)
 
-	i = (el).(int)
+	i = el.(*int)
 
-	if i != 2 {
+	if *i != 2 {
 		t.Fatalf("expected to see return value of 2, got %v", i)
 	}
 	el, found = s.Get("a")
 	if !found {
 		t.Fatal("failed to find inserted record")
 	}
-	i = (el).(int)
-	if i != 2 {
+	i = el.(*int)
+	if *i != 2 {
 		t.Fatalf("expected to see value incremented to 2, got %v", i)
 	}
 

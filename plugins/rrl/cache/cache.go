@@ -18,15 +18,15 @@ type Cache struct {
 	shards [numShards]*shard
 }
 
-type EvictFn func(*interface{}) bool
+type EvictFn func(interface{}) bool
 
 // evictAll will evict the first item in the shard - effectively a random eviction
 // this is the default mode of eviction if not set with SetEvict()
-var evictAll = func(*interface{}) bool {return true}
+var evictAll = func(interface{}) bool { return true }
 
 // shard is a cache with customizable eviction policy.
 type shard struct {
-	items     map[string]*interface{}
+	items     map[string]interface{}
 	size      int
 	evictable EvictFn
 
@@ -64,7 +64,7 @@ func (c *Cache) Add(key string, el interface{}) error {
 	return c.shards[keyShard(key)].Add(key, el)
 }
 
-func (c *Cache) UpdateAdd(key string, update func(*interface{}) interface{}, add func() interface{}) interface{} {
+func (c *Cache) UpdateAdd(key string, update func(interface{}) interface{}, add func() interface{}) interface{} {
 	return c.shards[keyShard(key)].UpdateAdd(key, update, add)
 }
 
@@ -92,8 +92,8 @@ func (c *Cache) Len() int {
 // newShard returns a new shard with size.
 func newShard(size int) *shard {
 	return &shard{
-		items: make(map[string]*interface{}),
-		size: size,
+		items:     make(map[string]interface{}),
+		size:      size,
 		evictable: evictAll,
 	}
 }
@@ -141,19 +141,19 @@ func (s *shard) Get(key string) (interface{}, bool) {
 	el, found := s.items[key]
 	s.RUnlock()
 	if found {
-		return *el, true
+		return el, true
 	}
 	return nil, false
 }
 
 // UpdateAdd executes the function `update` on the element indexed under key.
 // If key does not exist, then it is added, with a value equal to the result of function `add`.
-func (s *shard) UpdateAdd(key string, update func(*interface{}) interface{}, add func() interface{}) interface{} {
+func (s *shard) UpdateAdd(key string, update func(interface{}) interface{}, add func() interface{}) interface{} {
 	s.Lock()
+	defer s.Unlock()
 	el, found := s.items[key]
 	if found {
 		resp := update(el)
-		s.Unlock()
 		return resp
 	}
 	l := len(s.items)
@@ -163,8 +163,7 @@ func (s *shard) UpdateAdd(key string, update func(*interface{}) interface{}, add
 		}
 	}
 	newItem := add()
-	s.items[key] = &newItem
-	s.Unlock()
+	s.items[key] = newItem
 	return nil
 }
 
