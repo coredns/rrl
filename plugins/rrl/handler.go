@@ -48,7 +48,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	// create a non-writer, because we need to look at the response before writing to the client
 	nw := nonwriter.New(w)
 	rcode, err := plugin.NextOrFailure(rrl.Name(), rrl.Next, ctx, nw, r)
-	if err != nil || nw.Msg == nil {
+	if !plugin.ClientWrite(rcode) {
 		return rcode, err
 	}
 
