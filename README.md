@@ -1,7 +1,7 @@
 # rrl
 
 ## Name
- 
+
 *rrl* - provides BIND-like Response Rate Limiting to help mitigate DNS
 amplification attacks. *rrl* also allows request rate limiting. 
 
