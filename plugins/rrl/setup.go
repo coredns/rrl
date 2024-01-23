@@ -1,6 +1,7 @@
 package rrl
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/coredns/caddy"
@@ -12,6 +13,7 @@ import (
 var log = clog.NewWithPlugin("rrl")
 
 func init() {
+	fmt.Println("RRL INSTALLED")
 	caddy.RegisterPlugin("rrl", caddy.Plugin{
 		ServerType: "dns",
 		Action:     setup,
@@ -28,6 +30,8 @@ func setup(c *caddy.Controller) error {
 		e.Next = next
 		return e
 	})
+
+	fmt.Println("RRL INSTALLED")
 
 	return nil
 }

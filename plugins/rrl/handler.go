@@ -3,6 +3,7 @@ package rrl
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/miekg/dns"
 
@@ -31,6 +32,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		// if the balance is negative, drop the request (don't write response to client)
 		if b < 0 && err == nil {
 			log.Debugf("request rate exceeded from %v (token='%v', balance=%.1f)", state.IP(), t, float64(b)/float64(rrl.requestsInterval))
+			fmt.Println("request rate exceeded from %v (token='%v', balance=%.1f)", state.IP(), t, float64(b)/float64(rrl.requestsInterval))
 			RequestsExceeded.WithLabelValues(state.IP()).Add(1)
 			// always return success, to prevent writing of error statuses to client
 			if !rrl.reportOnly {
@@ -67,6 +69,7 @@ func (rrl *RRL) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	if b < 0 && err == nil {
 		log.Debugf("response rate exceeded to %v for \"%v\" %v (token='%v', balance=%.1f)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, float64(b)/float64(allowance))
 		// always return success, to prevent writing of error statuses to client
+		fmt.Println("response rate exceeded to %v for \"%v\" %v (token='%v', balance=%.1f)", nw.RemoteAddr().String(), nw.Msg.Question[0].String(), dns.RcodeToString[nw.Msg.Rcode], t, float64(b)/float64(allowance))
 		ResponsesExceeded.WithLabelValues(state.IP()).Add(1)
 		if !rrl.reportOnly {
 			if !slip {
