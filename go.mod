@@ -3,7 +3,7 @@ module github.com/coredns/rrl
 go 1.24.0
 
 require (
-	github.com/coredns/caddy v1.1.2-0.20241029205200-8de985351a98
+	github.com/coredns/caddy v1.1.4
 	github.com/coredns/coredns v1.12.4
 	github.com/miekg/dns v1.1.68
 	github.com/prometheus/client_golang v1.23.2
