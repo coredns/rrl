@@ -215,4 +215,16 @@ func TestAddrPrefix(t *testing.T) {
 			t.Errorf("expected '%v', got '%v'", c.expected, got)
 		}
 	}
+
+	// Verify no panic for empty/synthetic addresses (e.g. cache prefetch in coredns v1.14+)
+	for _, addr := range []string{":0", "", ":"} {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("addrPrefix panicked for addr=%q: %v", addr, r)
+				}
+			}()
+			rrl.addrPrefix(addr)
+		}()
+	}
 }

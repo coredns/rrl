@@ -215,6 +215,9 @@ func (rrl *RRL) debit(allowance int64, t string) (int64, bool, error) {
 // addrPrefix returns the address prefix of the net.Addr style address string (e.g. 1.2.3.4:1234 or [1:2::3:4]:1234)
 func (rrl *RRL) addrPrefix(addr string) string {
 	i := strings.LastIndex(addr, ":")
+	if i <= 0 {
+		return addr
+	}
 	ip := net.ParseIP(addr[:i])
 	if ip.To4() != nil {
 		ip = ip.Mask(net.CIDRMask(rrl.ipv4PrefixLength, 32))
